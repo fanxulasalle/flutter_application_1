@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class DebouncedSearchBar extends StatefulWidget {
-  final void Function(String) onSearch;
+  final Future<void> Function(String) onSearch;
 
   const DebouncedSearchBar({super.key, required this.onSearch});
 
@@ -24,8 +24,10 @@ class _DebouncedSearchBarState extends State<DebouncedSearchBar> {
   void _onTextChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(_debounceDuration, () {
-        widget.onSearch(_controller.text.trim());
+    _debounce = Timer(_debounceDuration, ()async {
+        print(_controller.text);
+         await widget.onSearch(_controller.text.trim());
+
     });
   }
 

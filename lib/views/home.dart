@@ -7,65 +7,56 @@ import 'package:provider/provider.dart';
 class Home extends StatelessWidget {
   const Home({super.key});
 
-  void _onSearch(String value, ViewModel appState) {
-    appState.searchAnime(value);
+  Future<void> _onSearch(String value, ViewModel appState) async {
+    await appState.searchAnime(value);
   }
 
   @override
   Widget build(BuildContext context) {
-    final appState = context.watch<ViewModel>();
-    return FutureBuilder(
-      future: appState.loadAnimes(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: const Center(child: Text('Error loading data')),
-          );
-        }
-        return GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: Scaffold(
-            body: SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: DebouncedSearchBar(
-                        onSearch: (v) => _onSearch(v, appState),
-                      ),
+    final ViewModel appState = context.watch<ViewModel>();
+    context.read<ViewModel>().loadAnimes();
+    if (appState.animes != null){
+      return GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: DebouncedSearchBar(
+                      onSearch: (v) async => await _onSearch(v, appState),
                     ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        Anime animeCurrent = appState.animes![index];
-                        return Column(
-                          children: [
-                            Text(animeCurrent.title),
-                            Image.network(
-                              animeCurrent.images['jpg']['image_url'],
-                            ),
-                          ],
-                        );
-                      },
-                      itemCount: appState.animes!.length,
-                    ),
-                  ],
-                ),
+                  ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      Anime animeCurrent = appState.animes![index];
+                      return Column(
+                        children: [
+                          Text(animeCurrent.title),
+                          Image.network(
+                            animeCurrent.images['jpg']['image_url'],
+                          ),
+                        ],
+                      );
+                    },
+                    itemCount: appState.animes!.length,
+                  )
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      );
+    }
+    return const  Scaffold(
+      body: Center(child: CircularProgressIndicator(),),
     );
   }
 }
